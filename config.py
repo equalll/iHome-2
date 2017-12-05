@@ -25,3 +25,8 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """生产环境下的配置"""
     pass
+
+config={
+    "development":DevelopmentConfig,
+    "production":ProductionConfig
+}

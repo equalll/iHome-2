@@ -19,7 +19,7 @@ manager.add_command('db',MigrateCommand)
 def index():
     session["name"] ="xiaohua"
     # redis_store.set('name','xiaoruirui')
-    return "index2"
+    return "index yujjinneng"
 
 
 if __name__ == '__main__':

@@ -1,13 +1,8 @@
 # -*- coding:utf-8 -*-
-from flask import Flask,session
-from flask_sqlalchemy import SQLAlchemy
-import redis
-from flask_wtf.csrf import CSRFProtect
-from flask_session import Session
+from flask import session
 from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
-from config import Config
-from iHome import db,create_app,redis_store
+from iHome import db,create_app
 
 app=create_app("development")
 manager = Manager(app)

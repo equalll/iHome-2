@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import config
-
 # app=Flask(__name__)
 # app.config.from_object(Config)
 
@@ -33,11 +32,14 @@ def create_app(config_name):
 
     global redis_store
     redis_store=redis.StrictRedis(host=config[config_name].REDIS_HOST,port=config[config_name].REDIS_PORT)
-    print redis_store
+    #print redis_store
     # 将当前app与csrf对象进行关联
     csrf.init_app(app)
     # # 给当前app的session设置保存路径
     Session(app)
+    # 注册api接口的蓝图
+    from api_1_0 import api
+    app.register_blueprint(api)
     return app
 
 

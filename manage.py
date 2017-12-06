@@ -10,12 +10,5 @@ manager = Manager(app)
 Migrate(app,db)
 manager.add_command('db',MigrateCommand)
 
-@app.route("/",methods=["GET","POST"])
-def index():
-    session["name"] ="xiaohua"
-    # redis_store.set('name','xiaoruirui')
-    return "index yujjinneng222"
-
-
 if __name__ == '__main__':
     manager.run()

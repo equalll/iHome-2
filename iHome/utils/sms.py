@@ -8,13 +8,13 @@ from iHome.libs.yuntongxun.CCPRestSDK import REST
 import ConfigParser
 
 # Ö÷ÕÊºÅ
-accountSid = '8aaf07085f5c54cf015f8c1710fa0f4d';
+accountSid = '8a216da86010e69001603110ee2a0e9f';
 
 # Ö÷ÕÊºÅToken
-accountToken = '711b641d76b34b06ab1a1fbc07fd381c';
+accountToken = '413bb3e3591844919bbc19a6c4216a29';
 
 # Ó¦ÓÃId
-appId = '8aaf07085f5c54cf015f8c1712620f54';
+appId = '8a216da86010e69001603110ee8a0ea6';
 
 # ÇëÇóµØÖ·£¬¸ñÊ½ÈçÏÂ£¬²»ÐèÒªÐ´http://
 serverIP = 'app.cloopen.com';
@@ -47,4 +47,4 @@ def sendTemplateSMS(to, datas, tempId):
             print '%s:%s' % (k, v)
 
 
-            # sendTemplateSMS("18513174598", ["999999", "5"], "1")
+# sendTemplateSMS("17695738212", ["999999", "5"], "1")

@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import config
+from utils.common import RegexConverter
 # 初始化redis
 redis_store =None
 # 初始化数据库连接
@@ -45,6 +46,8 @@ def create_app(config_name):
     csrf.init_app(app)
     # # 给当前app的session设置保存路径
     Session(app)
+    # 将自定义的正则转换器添加到转换器的字典中
+    app.url_map.converters['re'] = RegexConverter
     # 注册api接口的蓝图
     from iHome.api_1_0 import api
     app.register_blueprint(api)

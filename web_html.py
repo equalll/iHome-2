@@ -4,7 +4,17 @@ from flask import Blueprint,current_app
 # 创建提供静态文件文件的蓝图
 html = Blueprint("html",__name__)
 
-@html.route("/<file_name>")
+# @html.route("/<file_name>")
+# def get_html_file(file_name):
+#     file_name = "html/"+file_name
+#     return current_app.send_static_file(file_name)
+
+@html.route('/<re(".*"):file_name>')
 def get_html_file(file_name):
-    file_name = "html/"+file_name
+    # 如果用户输入的是根路由
+    if not file_name:
+        file_name="index.html"
+    # 判断是否是网站的Logo，如果不是，添加前缀
+    if file_name != "favicon.ico":
+        file_name ="html/"+file_name
     return current_app.send_static_file(file_name)

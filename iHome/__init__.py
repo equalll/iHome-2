@@ -1,13 +1,16 @@
 # -*- coding:utf-8 -*-
-import redis
 import logging
 from logging.handlers import RotatingFileHandler
+
+import redis
 from flask import Flask
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from flask_session import Session
+
 from config import config
-from utils.common import RegexConverter
+from iHome.utils.common import RegexConverter
+
 # 初始化redis
 redis_store =None
 # 初始化数据库连接
@@ -50,7 +53,7 @@ def create_app(config_name):
     app.url_map.converters['re'] = RegexConverter
     # 注册api接口的蓝图
     from iHome.api_1_0 import api
-    app.register_blueprint(api)
+    app.register_blueprint(api,url_prefix="/api/v1.0")
 
     # 注册静态文件的蓝图
     from web_html import html

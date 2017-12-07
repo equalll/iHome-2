@@ -16,15 +16,18 @@ function generateUUID() {
     return uuid;
 }
 var imageCodeId = ""
+var preimageCodeId = ""
 // 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
 function generateImageCode() {
     // shengcheng yanzhengma
         // 1. 生成编号
     imageCodeId = generateUUID()
         // 2. 设置页面中图片验证码img标签的src属性
-    var url = "/api/v1.0/imagecode?cur=" + imageCodeId
+    // var url = "/api/v1.0/imagecode?cur=" + imageCodeId
+    var url = "/api/v1.0/imagecode?cur=" + imageCodeId + "&pre="+preimageCodeId
         // 找到image-code标签下的img标签，并设置src的属性值
     $(".image-code>img").attr("src",url)
+    preimageCodeId = imageCodeId
     // $(".image-code>img").attr("src", url)
 }
 

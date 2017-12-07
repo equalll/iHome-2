@@ -48,6 +48,11 @@ def create_app(config_name):
     # 注册api接口的蓝图
     from iHome.api_1_0 import api
     app.register_blueprint(api)
+
+    # 注册静态文件的蓝图
+    from web_html import html
+    app.register_blueprint(html)
+
     return app
 
 

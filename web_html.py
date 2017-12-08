@@ -17,6 +17,7 @@ def get_html_file(file_name):
     # 判断是否是网站的Logo，如果不是，添加前缀
     # 127.0.0.1/index
     # 127.0.0.1/favicon.ico
+    # if file_name != "favicon.ico":
     if file_name != "favicon.ico":
         file_name ="html/"+file_name
     return current_app.send_static_file(file_name)

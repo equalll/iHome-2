@@ -4,6 +4,7 @@ import re
 
 from flask import json
 
+from iHome.models import User
 from iHome.utils.response_code import RET
 from flask import request,abort,current_app,jsonify,make_response
 
@@ -44,6 +45,16 @@ def send_sms():
    print real_image_code
    if image_code.lower() != real_image_code.lower():
        return jsonify(errno=RET.DATAERR, errmsg="验证码输入错误")
+
+
+   try:
+       mobile = User.query.filter_by(mobile=mobile).first()
+   except Exception as e:
+       user = None  # 如果查询时出现错误，也需要给user初始化，如果不初始化，会报未定义的异常
+       current_app.logger.error(e)
+   if mobile:
+           return   jsonify(errno=RET.DATAEXIST, errmsg="该手机已被注册")
+
 
     # 5生成内容, 给手机发送验证码
    phone_code = random.randint(0,999999)

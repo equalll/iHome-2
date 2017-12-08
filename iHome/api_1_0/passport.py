@@ -3,12 +3,50 @@ from flask import current_app
 # 实现注册和登录的逻辑
 
 from flask import current_app
+from flask import session
+
 from . import api
 from flask import request, jsonify
 from iHome.utils.response_code import RET
 from iHome import redis_store, db
 from iHome.models import User
 
+@api.route("/session",methods=["POST"])
+def login():
+    """
+    1. 获取参数和判断是否有值
+    2. 从数据库查询出指定的用户
+    3. 校验密码
+    4. 保存用户登录状态
+    5. 返回结果
+    :return:
+    """
+    data_dict = request.data
+    mobile = data_dict.get("mobile")
+    password = data_dict.get("password")
+
+    if not all([mobile,password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
+
+    # 2. 从数据库查询出指定的用户
+    try:
+        user = User.query.filter_by(mobile=mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据错误")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
+    if not user.check_password(password):
+        return jsonify(errno=RET.PWDERR, errmsg="密码错误")
+
+    # 4. 保存用户登录状态
+    session["user_id"] = user.id
+    session["mobile"] = user.mobile
+    session["name"] = user.name
+
+    return jsonify(errno=RET.OK,errmsg="登录成功")
 
 @api.route("/user", methods=["POST"])
 def register():

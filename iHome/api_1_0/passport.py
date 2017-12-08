@@ -47,7 +47,9 @@ def register():
     user =User()
     user.name = mobile
     user.name = mobile
-    # TODO: 对密码进行处理
+    # aODO: 对密码进行处理
+    #  对密码进行处理
+    user.password = password
     try:
         db.session.add(user)
         db.session.commit()

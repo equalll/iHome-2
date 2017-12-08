@@ -45,48 +45,81 @@ function sendSMSCode() {
 
     // 通过ajax方式向后端接口发送请求，让后端发送短信验证码
     var params = {
-        "mobile": mobile,
-        "image_code": imageCode, // 用户填写的图片验证码
-        "image_code_id": imageCodeId // 图片验证码的编号
+        mobile:"mobile",
+        imageCode:"imageCode",
+        imageCodeId:"imageCodeId"
     }
     $.ajax({
-        url: "/api/v1.0/smscode",
-        method: "post",
-        data: JSON.stringify(params),
-        contentType: "application/json",
-        headers: {
-            "X-CSRFToken": getCookie('csrf_token')
-        },
-        dataType: "json",
-        success: function (resp){
-            if (resp.errno == "0") {
-                // 倒数 60 秒
+        url:"api/v1.0/smscode",
+        type:"post",
+        data:JSON.stringify(params),
+        contentType:"application/json",
+        success:function (response) {
+            if(response.errno=="0"){
+                // success
                 var num = 60
-                // 计时器
                 var t = setInterval(function () {
-                    if (num == 1) {
-                        // 清除计时器
+                    if(num==1){
                         clearInterval(t)
-                        $(".phonecode-a").html("获取验证码")
-                        $(".phonecode-a").attr('onClick', 'sendSMSCode();')
-                    }else {
+                        $(".phonecode-a").attr("onclick","sendSMSCode();");
+                    }else{
+                        //  jishi zhong
                         num -= 1
                         $(".phonecode-a").html(num+"秒")
                     }
-                }, 1000, 60)
-            }else {
-                // 表示后端出现了错误，可以将错误信息展示到前端页面中
-                $("#phone-code-err").html(resp.errmsg)
-                $("#phone-code-err").show()
-                // 将点击按钮的onclick事件函数恢复回去
-                $(".phonecode-a").attr('onClick', 'sendSMSCode();')
 
-                if (resp.errno == "4004" | resp.errno == "4002") {
-                    generateImageCode()
-                }
+                },1000,60)
+            }else{
+                // bian cheng ke dian ji
+                $(".phonecode-a").attr("onclick","sendSMSCode();");
+                // tanchu tishi
+                alert(response.errmsg)
             }
         }
     })
+    // var params = {
+    //     "mobile": mobile,
+    //     "image_code": imageCode, // 用户填写的图片验证码
+    //     "image_code_id": imageCodeId // 图片验证码的编号
+    // }
+    // $.ajax({
+    //     url: "/api/v1.0/smscode",
+    //     method: "post",
+    //     data: JSON.stringify(params),
+    //     contentType: "application/json",
+    //     headers: {
+    //         "X-CSRFToken": getCookie('csrf_token')
+    //     },
+    //     dataType: "json",
+    //     success: function (resp){
+    //         if (resp.errno == "0") {
+    //             // 倒数 60 秒
+    //             var num = 60
+    //             // 计时器
+    //             var t = setInterval(function () {
+    //                 if (num == 1) {
+    //                     // 清除计时器
+    //                     clearInterval(t)
+    //                     $(".phonecode-a").html("获取验证码")
+    //                     $(".phonecode-a").attr('onClick', 'sendSMSCode();')
+    //                 }else {
+    //                     num -= 1
+    //                     $(".phonecode-a").html(num+"秒")
+    //                 }
+    //             }, 1000, 60)
+    //         }else {
+    //             // 表示后端出现了错误，可以将错误信息展示到前端页面中
+    //             $("#phone-code-err").html(resp.errmsg)
+    //             $("#phone-code-err").show()
+    //             // 将点击按钮的onclick事件函数恢复回去
+    //             $(".phonecode-a").attr('onClick', 'sendSMSCode();')
+    //
+    //             if (resp.errno == "4004" | resp.errno == "4002") {
+    //                 generateImageCode()
+    //             }
+    //         }
+    //     }
+    // })
     // $.get("/api/v1.0/smscode", params, function (resp) {
     //     if (resp.errno == "0") {
     //         // 倒数 60 秒

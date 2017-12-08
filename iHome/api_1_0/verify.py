@@ -25,8 +25,8 @@ def send_sms():
    data=request.data
    data_dict = json.loads(data)
    mobile = data_dict.get("mobile")
-   image_code = data_dict.get("imagecode")
-   image_code_id = data_dict.get("imagecode_id")
+   image_code = data_dict.get("image_code")
+   image_code_id = data_dict.get("image_code_id")
 
    if not all([mobile,image_code,image_code_id]):
        return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
@@ -41,7 +41,8 @@ def send_sms():
    except Exception as e:
        current_app.logger.error(e)
        return jsonify(rerrno=RET.DBERR, errmsg="获取图片验证码失败")
-   if image_code.lower() != real_image_code:
+   print real_image_code
+   if image_code.lower() != real_image_code.lower():
        return jsonify(errno=RET.DATAERR, errmsg="验证码输入错误")
 
     # 5生成内容, 给手机发送验证码
@@ -50,9 +51,9 @@ def send_sms():
    # current_app.logger.info(sms_code)
    current_app.logger.debug("短信验证码的内容：%s" % sms_code)
    result = CCP().send_template_sms(mobile,[sms_code,constants.SMS_CODE_REDIS_EXPIRES / 60],"1")
-   if result != 1:
-       return jsonify(error=RET.THIRDERR,errmsg="发送短信失败")
-       # 6. redis中保存短信验证码内容
+   # if result != 1:
+   #     return jsonify(error=RET.THIRDERR,errmsg="发送短信失败")
+   #     # 6. redis中保存短信验证码内容
    try:
        redis_store.set("SMS_"+mobile,sms_code,constants.SMS_CODE_REDIS_EXPIRES)
    except Exception as e:

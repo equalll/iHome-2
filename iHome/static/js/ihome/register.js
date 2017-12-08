@@ -34,7 +34,7 @@ function sendSMSCode() {
         $("#mobile-err").show();
         $(".phonecode-a").attr("onclick", "sendSMSCode();");
         return;
-    } 
+    }
     var imageCode = $("#imagecode").val();
     if (!imageCode) {
         $("#image-code-err span").html("请填写验证码！");
@@ -45,38 +45,48 @@ function sendSMSCode() {
 
     // 通过ajax方式向后端接口发送请求，让后端发送短信验证码
     var params = {
-        mobile:"mobile",
-        imageCode:"imageCode",
-        imageCodeId:"imageCodeId"
+        "mobile": mobile,
+        "image_code": imageCode,
+        "image_code_id": imageCodeId
     }
     $.ajax({
-        url:"api/v1.0/smscode",
-        type:"post",
-        data:JSON.stringify(params),
-        contentType:"application/json",
-        success:function (response) {
-            if(response.errno=="0"){
+        url: "api/v1.0/smscode",
+        type: "post",
+        data: JSON.stringify(params),
+        headers: {
+            "X-CSRFToken": getCookie("csrf_token")
+            // get the csrf_token
+        },
+        contentType: "application/json",
+        success: function (response) {
+            if (response.errno == "0") {
                 // success
                 var num = 60
                 var t = setInterval(function () {
-                    if(num==1){
+                    if (num == 1) {
+                        generateImageCode()
                         clearInterval(t)
-                        $(".phonecode-a").attr("onclick","sendSMSCode();");
-                    }else{
+                        $(".phonecode-a").html("获取验证码")
+                        $(".phonecode-a").attr("onclick", "sendSMSCode();");}
+                            //
+    //                     $(".phonecode-a").attr('onClick', 'sendSMSCode();')
+                    else {
                         //  jishi zhong
                         num -= 1
-                        $(".phonecode-a").html(num+"秒")
+                        $(".phonecode-a").html(num + "秒")
                     }
 
-                },1000,60)
-            }else{
+                }, 1000, 60)}
+            else {
+                generateImageCode()
                 // bian cheng ke dian ji
-                $(".phonecode-a").attr("onclick","sendSMSCode();");
+                $(".phonecode-a").attr("onclick", "sendSMSCode();");
                 // tanchu tishi
                 alert(response.errmsg)
             }
         }
     })
+}
     // var params = {
     //     "mobile": mobile,
     //     "image_code": imageCode, // 用户填写的图片验证码
@@ -148,7 +158,7 @@ function sendSMSCode() {
     //         }
     //     }
     // })
-}
+
 
 $(document).ready(function() {
     generateImageCode();  // 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性

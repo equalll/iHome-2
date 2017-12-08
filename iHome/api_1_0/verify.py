@@ -28,7 +28,7 @@ def send_sms():
    mobile = data_dict.get("mobile")
    image_code = data_dict.get("image_code")
    image_code_id = data_dict.get("image_code_id")
-
+   # print mobile
    if not all([mobile,image_code,image_code_id]):
        return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
 
@@ -48,11 +48,11 @@ def send_sms():
 
 
    try:
-       mobile = User.query.filter_by(mobile=mobile).first()
+       user = User.query.filter_by(mobile=mobile).first()
    except Exception as e:
        user = None  # 如果查询时出现错误，也需要给user初始化，如果不初始化，会报未定义的异常
        current_app.logger.error(e)
-   if mobile:
+   if user:
            return   jsonify(errno=RET.DATAEXIST, errmsg="该手机已被注册")
 
 
@@ -61,11 +61,13 @@ def send_sms():
    sms_code ="%06d"%phone_code
    # current_app.logger.info(sms_code)
    current_app.logger.debug("短信验证码的内容：%s" % sms_code)
-   result = CCP().send_template_sms(mobile,[sms_code,constants.SMS_CODE_REDIS_EXPIRES / 60],"1")
+   #result = CCP().send_template_sms(mobile,[sms_code,constants.SMS_CODE_REDIS_EXPIRES / 60],"1")
    # if result != 1:
    #     return jsonify(error=RET.THIRDERR,errmsg="发送短信失败")
    #     # 6. redis中保存短信验证码内容
+
    try:
+       print mobile
        redis_store.set("SMS_"+mobile,sms_code,constants.SMS_CODE_REDIS_EXPIRES)
    except Exception as e:
        current_app.logger.error(e)

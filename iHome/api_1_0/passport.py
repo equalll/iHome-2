@@ -42,10 +42,11 @@ def login():
         return jsonify(errno=RET.PWDERR, errmsg="密码错误")
 
     # 4. 保存用户登录状态
-    session["user_id"] = user.id
-    session["mobile"] = user.mobile
-    session["name"] = user.name
-
+    # session["user_id"] = user.id
+    # session["mobile"] = user.mobile
+    # session["name"] = user.name
+    session["user_id"]
+    # 5. 返回结果
     return jsonify(errno=RET.OK,errmsg="登录成功")
 
 @api.route("/user", methods=["POST"])
@@ -84,7 +85,7 @@ def register():
         # 4. 初始化 user 模型，并设置数据并添加到数据库
     user =User()
     user.name = mobile
-    user.name = mobile
+    user.mobile = mobile
     # aODO: 对密码进行处理
     #  对密码进行处理
     user.password = password

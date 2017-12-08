@@ -12,9 +12,12 @@ $(document).ready(function() {
     });
     // 添加登录表单提交操作
     $(".form-login").submit(function(e){
-        e.preventDefault();
-        mobile = $("#mobile").val();
-        passwd = $("#password").val();
+        // e.preventDefault();
+        e.preventDefault()
+        // mobile = $("#mobile").val();
+        // passwd = $("#password").val();
+        mobile = $("#mobile").val()
+        passwd = $("#password").val()
         if (!mobile) {
             $("#mobile-err span").html("请填写正确的手机号！");
             $("#mobile-err").show();
@@ -25,28 +28,31 @@ $(document).ready(function() {
             $("#password-err").show();
             return;
         }
-
         var params = {
-            "mobile": mobile,
-            "password": passwd
+            "mobile":mobile,
+            "password":passwd
         }
-
         $.ajax({
-            url: "/api/v1.0/session",
-            method: "post",
-            data: JSON.stringify(params),
-            headers: {
-                "X-CSRFToken": getCookie('csrf_token')
+            url:"/api/v1.0/session",
+            methods : "post",
+            headers:{
+                "X-CSRFToken":getCookie("csrf_token")
             },
+            data : JSON.stringify(params),
             contentType: "application/json",
-            success: function (resp) {
-                if (resp.errno == "0"){
-                    location.href = '/index.html'
-                }else {
+            success :function (resp) {
+                if(resp.error == "0"){
+                    location.href = "/index.html"
+                }else{
                     $("#password-err span").html(resp.errmsg)
                     $("#password-err").show()
                 }
+
+
             }
         })
+
+
+
     });
 })

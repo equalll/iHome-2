@@ -39,7 +39,7 @@ def login():
     if not user.check_password(password):
         return jsonify(errno=RET.PWDERR, errmsg="密码错误")
 
-    session["user_id"]
+    session["user_id"]=user.id
     # =user.id
     # 4. 保存用户登录状态
     # session["user_id"] = user.id

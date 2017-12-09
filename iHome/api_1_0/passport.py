@@ -3,10 +3,8 @@ from flask import current_app
 # 实现注册和登录的逻辑
 
 from flask import current_app
-from flask import session
-
 from . import api
-from flask import request, jsonify
+from flask import request, jsonify,session
 from iHome.utils.response_code import RET
 from iHome import redis_store, db
 from iHome.models import User
@@ -21,7 +19,7 @@ def login():
     5. 返回结果
     :return:
     """
-    data_dict = request.data
+    data_dict = request.json
     mobile = data_dict.get("mobile")
     password = data_dict.get("password")
 
@@ -41,11 +39,14 @@ def login():
     if not user.check_password(password):
         return jsonify(errno=RET.PWDERR, errmsg="密码错误")
 
+    session["user_id"]
+    # =user.id
     # 4. 保存用户登录状态
     # session["user_id"] = user.id
     # session["mobile"] = user.mobile
     # session["name"] = user.name
-    session["user_id"]
+
+
     # 5. 返回结果
     return jsonify(errno=RET.OK,errmsg="登录成功")
 

@@ -34,14 +34,14 @@ $(document).ready(function() {
         }
         $.ajax({
             url:"/api/v1.0/session",
-            methods : "post",
+            method : "post",
             headers:{
                 "X-CSRFToken":getCookie("csrf_token")
             },
             data : JSON.stringify(params),
             contentType: "application/json",
             success :function (resp) {
-                if(resp.error == "0"){
+                if(resp.errno == "0"){
                     location.href = "/index.html"
                 }else{
                     $("#password-err span").html(resp.errmsg)

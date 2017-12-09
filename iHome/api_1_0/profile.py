@@ -9,6 +9,32 @@ from iHome.constants import QINIU_DOMIN_PREFIX
 from flask import g
 from iHome.utils.common import login_required
 
+@api.route("/users")
+@login_required
+def get_user_info():
+    """
+    获取用户信息
+    1. 获取到当前登录的用户模型
+    2. 返回模型中指定内容
+    :return:
+    """
+    user_id =g.user_id
+    try:
+        user=User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据错误")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
+    resp_dict ={
+        "name":user.name,
+        "avatar_url":QINIU_DOMIN_PREFIX+user.avatar_url,
+        "mobile":user.mobile
+    }
+    return jsonify(errno=RET.OK, errmsg="OK", data=resp_dict)
+
 @api.route("/user/avatar",methods=["POST"])
 @login_required
 def save_image():

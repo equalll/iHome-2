@@ -43,8 +43,8 @@ def login():
     # =user.id
     # 4. 保存用户登录状态
     # session["user_id"] = user.id
-    # session["mobile"] = user.mobile
-    # session["name"] = user.name
+    session["mobile"] = user.mobile
+    session["name"] = user.name
 
 
     # 5. 返回结果

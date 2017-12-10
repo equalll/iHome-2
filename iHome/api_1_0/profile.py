@@ -9,6 +9,56 @@ from iHome.constants import QINIU_DOMIN_PREFIX
 from flask import g
 from iHome.utils.common import login_required
 
+@api.route("/user/auth",methods=["POST"])
+@login_required
+def set_real():
+    user_id=g.user_id
+    real_data = request.json
+    real_name = real_data.get("real_name")
+    id_card = real_data.get("id_card")
+
+    try:
+        user=User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活")
+    user.real_name = real_name
+    user.id_card = id_card
+
+    if not user:
+        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活")
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DATAERR,errmsg="数据保存错误")
+
+    return jsonify(errno=RET.OK,errmsg="ok")
+
+@api.route("/user/auth")
+@login_required
+def get_real():
+    user_id=g.user_id
+    try:
+        user=User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活error")
+
+    if not user:
+        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活")
+
+    real_name=user.real_name
+    id_card=user.id_card
+
+    to_dict={
+        "real_name": real_name,
+        "id_card": id_card
+    }
+    return jsonify(errno=RET.OK,errmsg="OK",data=to_dict)
+
 @api.route("/users")
 @login_required
 def get_user_info():

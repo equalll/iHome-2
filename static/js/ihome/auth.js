@@ -13,9 +13,67 @@ function getCookie(name) {
 }
 
 $(document).ready(function(){
-    // TODO: 查询用户的实名认证信息
+    // DO: 查询用户的实名认证信息
+    $.get("/api/v1.0/user/auth",function (resp) {
+        if (resp.errno=="0"){
+            if(resp.data.real_name && resp.data.id_card){
+                $("#real-name").val(resp.data.real_name)
+                $("#id-card").val(resp.data.id_card)
+                // 吧输入框设置为不可点击
+                $("#real_name").pop("disabled",true)
+                $("#id-card").pop("disabled",true)
+                //  shezhi  yincang baocun
+                $(".btn").hide()
+            }
+        }
+        else if(resp.errno=="4101"){
+            location.href="login.html"
+        }
+        else{
+            alert(resp.errmsg)
+        }
+    })
+    // DO: 管理实名信息表单的提交行为
 
+    $("#form-auth").submit(function () {
+        real_name=$("#real-name").val()
+        id_card = $("#id-card").val()
+        if(! real_name && id_card){
+            $(".error-msg").show()
+        }
+        $(".error-msg").hide()
 
-    // TODO: 管理实名信息表单的提交行为
+        var params={
+            "real_name":real_name,
+            "id_card":id_card
+        }
+        $.ajax({
+            url:"/api/v1.0/user/auth",
+            type:"post",
+            headers:{
+                "X-CSRFToken":getCookie("csrf_token")
+            },
+            data:JSON.stringify(params),
+            contentType:"application/json",
+            success:function (resp) {
+                if(resp.errno=="0"){
+                $("#real-name").val(resp.data.real_name)
+                $("#id-card").val(resp.data.id_card)
+                // 吧输入框设置为不可点击
+                $("#real_name").pop("disabled",true)
+                $("#id-card").pop("disabled",true)
+                $(".error-msg").hide()
+                }else if(resp.errno=="4101"){
+                    location.href("/login.html")
+                }else{
+                    alert(resp.errmsg)
+                }
+
+            }
+
+        })
+
+    })
+
 
 })

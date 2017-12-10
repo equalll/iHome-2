@@ -40,6 +40,14 @@ class User(BaseModel, db.Model):
     def check_password(self,password):
         return check_password_hash(self.password_hash,password)
 
+    def to_dict(self):
+        """将对象转换为字典数据"""
+        user_dict = {
+            "real_name": self.real_name,
+            "id_card": self.id_card
+        }
+        return user_dict
+
 class Area(BaseModel, db.Model):
     """城区"""
 

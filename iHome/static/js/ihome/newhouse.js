@@ -13,9 +13,11 @@ $(document).ready(function(){
             // $("#areas-tmpl").
             for(var i=0; i<resp.data.length;i++){
                 //<option value="{{area.aid}}">{{area.aname}}</option>
-                var areaId = resp.data[i].aid
-                var areaName = resp.data[i].aname
-                $("#area-id").append('<option value= " '+areaId+' ">'+areaName+'</option>')
+                // var areaId = resp.data[i].aid
+                // var areaName = resp.data[i].aname
+                // $("#area-id").append('<option value= " '+areaId+' ">'+areaName+'</option>')
+                var html = template("areas-tmpl",{"areas":resp.data})
+                $("#area-id").html(html)
             }
         }else{
             alert(resp.errmsg)

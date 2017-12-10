@@ -27,7 +27,43 @@ $(document).ready(function(){
     })
 
 
-    // TODO: 处理房屋基本信息提交的表单数据
+    // : 处理房屋基本信息提交的表单数据
+    $("#form-house-info").submit(function (e) {
+        e.preventDefault()
+                // 获取所有需要提交的字段
+        var params={}
+        //序列 hua
+        $(this).serializeArray().map(function (x) {
+            params[x.name]=x.value
+        })
+        var facility = []
+        //选择器
+        $(":checkbox:checked[name=facility]").each(function (i,x) {
+            facility[i] = x.value
+        })
+        params["facility"]=facility
+
+        $.ajax({
+            url:"/api/v1.0/house",
+            type:"post",
+            contentType:"application/json",
+            headers:{
+                "X-CSRFToken":getCookie("csrf_token")
+            },
+            data:JSON.stringify(params),
+            success:function (resp) {
+                if(resp.errno=="0"){
+                    $("#form-house-info").hide()
+                    $("#form-house-image").show()
+                }else if(resp.errno=="4101"){
+                    location.href="/login.html"
+                }else{
+                    alert(resp.errmsg)
+                }
+
+            }
+        })
+    })
 
     // TODO: 处理图片表单的数据
 

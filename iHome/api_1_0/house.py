@@ -88,7 +88,7 @@ def save_new_house():
         return jsonify(errno=RET.DBERR, errmsg="数据保存错误")
 
     return jsonify(errno=RET.OK, errmsg="ok", data={"house_id": house.id})
-)
+
 
 
 @api.route("/areas")

@@ -24,6 +24,8 @@ def logout():
 
     return jsonify(errno=RET.OK, errmsg="OK")
 
+@api.route("/session")
+
 
 @api.route("/session",methods=["POST"])
 def login():

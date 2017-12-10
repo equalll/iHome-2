@@ -52,7 +52,6 @@ class Area(BaseModel, db.Model):
     """城区"""
 
     __tablename__ = "ih_area_info"
-
     id = db.Column(db.Integer, primary_key=True)  # 区域编号
     name = db.Column(db.String(32), nullable=False)  # 区域名字
     houses = db.relationship("House", backref="area")  # 区域的房屋

@@ -4,4 +4,7 @@ from flask import Blueprint
 #new a api's blueprint
 api=Blueprint("api_1_0", __name__)
 
-from . import verify,passport,profile
+from . import verify
+from . import passport
+from . import house
+from . import profile

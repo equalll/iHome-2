@@ -4,13 +4,13 @@ from flask import current_app
 # 实现注册和登录的逻辑
 
 from flask import current_app
+
+from iHome.utils.common import login_required
 from . import api
 from flask import request, jsonify,session
 from iHome.utils.response_code import RET
 from iHome import redis_store, db
 from iHome.models import User
-
-
 
 @api.route("/session", methods=["DELETE"])
 def logout():
@@ -67,6 +67,7 @@ def login():
     return jsonify(errno=RET.OK,errmsg="登录成功")
 
 @api.route("/user", methods=["POST"])
+@login_required
 def register():
     """
     1. 获取参数和判断是否有值

@@ -20,14 +20,14 @@ $(document).ready(function(){
                 $("#real-name").val(resp.data.real_name)
                 $("#id-card").val(resp.data.id_card)
                 // 吧输入框设置为不可点击
-                $("#real_name").pop("disabled",true)
-                $("#id-card").pop("disabled",true)
+                $("#real-name").prop("disabled",true)
+                $("#id-card").prop("disabled",true)
                 //  shezhi  yincang baocun
                 $(".btn").hide()
             }
         }
         else if(resp.errno=="4101"){
-            location.href="login.html"
+            location.href="/login.html"
         }
         else{
             alert(resp.errmsg)
@@ -35,10 +35,12 @@ $(document).ready(function(){
     })
     // DO: 管理实名信息表单的提交行为
 
-    $("#form-auth").submit(function () {
-        real_name=$("#real-name").val()
-        id_card = $("#id-card").val()
-        if(! real_name && id_card){
+    $("#form-auth").submit(function (e) {
+        e.preventDefault()
+
+        var real_name=$("#real-name").val()
+        var id_card = $("#id-card").val()
+        if(! (real_name && id_card)){
             $(".error-msg").show()
         }
         $(".error-msg").hide()
@@ -50,11 +52,11 @@ $(document).ready(function(){
         $.ajax({
             url:"/api/v1.0/user/auth",
             type:"post",
+            contentType:"application/json",
             headers:{
                 "X-CSRFToken":getCookie("csrf_token")
             },
             data:JSON.stringify(params),
-            contentType:"application/json",
             success:function (resp) {
                 if(resp.errno=="0"){
                 $("#real-name").val(resp.data.real_name)

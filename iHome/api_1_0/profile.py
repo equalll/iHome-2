@@ -48,7 +48,7 @@ def get_real():
         return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活error")
 
     if not user:
-        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活")
+        return jsonify(errno=RET.USERERR,errmsg="用户不存在或未激活",data=user.to_dict())
 
     real_name=user.real_name
     id_card=user.id_card

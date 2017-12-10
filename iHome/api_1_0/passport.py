@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+
 from flask import current_app
 # 实现注册和登录的逻辑
 
@@ -8,6 +9,21 @@ from flask import request, jsonify,session
 from iHome.utils.response_code import RET
 from iHome import redis_store, db
 from iHome.models import User
+
+
+
+@api.route("/session", methods=["DELETE"])
+def logout():
+    """
+    1. 清除session中的对应登录之后保存的信息
+    :return:
+    """
+    session.pop("name",None)
+    session.pop("mobile",None)
+    session.pop("user_id",None)
+
+    return jsonify(errno=RET.OK, errmsg="OK")
+
 
 @api.route("/session",methods=["POST"])
 def login():

@@ -4,12 +4,64 @@ from flask import g
 from flask import request
 
 from iHome import redis_store, db
-from iHome.constants import AREA_INFO_REDIS_EXPIRES
+from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX
 from iHome.utils.common import login_required
+from iHome.utils.image_storage import storage_image
 from iHome.utils.response_code import RET
 from . import api
-from iHome.models import Area, House
+from iHome.models import Area, House, HouseImage,Facility
 
+
+@api.route("/houses/<int:house_id>/images")
+@login_required
+def upload_house_image(house_id):
+    """
+    1. 取到上传的图片
+    2. 进行七牛云上传
+    3. 将上传返回的图片地址存储
+    4. 进行返回
+    :return:
+    """
+
+    # 1. 取到上传的图片
+    try:
+        house_image_file = request.files.get("house_image").read()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
+
+    # 2. 查询房屋是否存在
+    try:
+        house = House.query.get("house_id")
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋失败")
+
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="房屋不存在")
+
+    try:
+        url = storage_image(house_image_file)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR,errmsg="上传图片失败")
+
+        # 4. 初始化房屋的图片模型
+    house_image = HouseImage()
+    house_image.house_id = house.id
+
+    # 判断是否有首页图片
+    if not house.index_image_url:
+        house.index_image_url=url
+
+    # 更新到数据库
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
+    return jsonify(errno=RET.OK,errmsg="OK",data={"url":QINIU_DOMIN_PREFIX +url})
 
 @api.route("/house",methods=["POST"])
 @login_required
@@ -88,8 +140,6 @@ def save_new_house():
         return jsonify(errno=RET.DBERR, errmsg="数据保存错误")
 
     return jsonify(errno=RET.OK, errmsg="ok", data={"house_id": house.id})
-
-
 
 @api.route("/areas")
 def get_areas():

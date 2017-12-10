@@ -44,7 +44,7 @@ $(document).ready(function(){
         params["facility"]=facility
 
         $.ajax({
-            url:"/api/v1.0/house",
+            url:"/api/v1.0/houses",
             type:"post",
             contentType:"application/json",
             headers:{
@@ -55,6 +55,8 @@ $(document).ready(function(){
                 if(resp.errno=="0"){
                     $("#form-house-info").hide()
                     $("#form-house-image").show()
+                    // 在上传房屋基本信息成功之后，去设置房屋的id，以便在上传房屋图片的时候使用
+                    $("#house-id").val(resp.data.house_id)
                 }else if(resp.errno=="4101"){
                     location.href="/login.html"
                 }else{
@@ -66,5 +68,6 @@ $(document).ready(function(){
     })
 
     // TODO: 处理图片表单的数据
+    var house_id =$("#house-id").val()
 
 })

@@ -2,6 +2,7 @@
 from flask import current_app, jsonify
 from flask import g
 from flask import request
+from flask import session
 
 from iHome import redis_store, db
 from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND
@@ -23,7 +24,7 @@ def get_house_detail(house_id):
     """
     # 先尝试从redis中去取
     # 获取到当前登录用户的id，如果没有登录，那么就返回-1
-    user_id =g.user_id
+    user_id = session.get("user_id",-1)
     try:
         house_dict = redis_store.get(("house_detail_%d" %house_id))
         if house_dict:
@@ -48,6 +49,7 @@ def get_house_detail(house_id):
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.OK, errmsg="OK", data={"user_id": user_id, "house": house_dict})
+
 @api.route("/houses/<int:house_id>/images",methods=["POST"])
 @login_required
 def upload_house_image(house_id):

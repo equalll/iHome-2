@@ -5,13 +5,48 @@ from flask import request
 from flask import session
 
 from iHome import redis_store, db
-from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND
+from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND, \
+    HOME_PAGE_MAX_HOUSES, HOME_PAGE_DATA_REDIS_EXPIRES
 from iHome.utils.common import login_required
 from iHome.utils.image_storage import storage_image
 from iHome.utils.response_code import RET
 from . import api
 from iHome.models import Area, House, HouseImage,Facility
 
+@api.route("/houses/index")
+def get_house_index():
+    """
+    1. 查询数据库 > order_by，limit
+    2. 返回
+
+    :return: 首页订单量最高的5条数据
+    """
+    # 先从缓存中去加载数据
+    try:
+        houses_dict = redis_store.get("home_house")
+        if houses_dict:
+            return jsonify(errno=RET.OK, errmsg="OK", data={"houses": eval(houses_dict)})
+    except Exception as e:
+        current_app.logger.error(e)
+
+    try:
+        houses = House.query.order_by(House.order_count.desc()).limit(HOME_PAGE_MAX_HOUSES)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询数据失败")
+
+        # 将对象列表转成字典列表
+    houses_dict = []
+    for house in houses:
+        houses_dict.append(house.to_basic_dict())
+
+    # 将数据进行缓存
+    try:
+        redis_store.set("home_house",houses_dict, HOME_PAGE_DATA_REDIS_EXPIRES)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    return jsonify(errno=RET.OK, errmsg="OK", data={"houses": houses_dict})
 
 @api.route("/houses/<int:house_id>")
 def get_house_detail(house_id):
@@ -104,7 +139,6 @@ def upload_house_image(house_id):
         return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
     return jsonify(errno=RET.OK,errmsg="OK",data={"url":QINIU_DOMIN_PREFIX +url})
 
-
 @api.route("/houses",methods=["POST"])
 @login_required
 def save_new_house():
@@ -132,6 +166,7 @@ def save_new_house():
     """
 
     # 1. 取到参数
+
     user_id = g.user_id
 
     json_dict = request.json
@@ -148,17 +183,18 @@ def save_new_house():
     min_days = json_dict.get('min_days')
     max_days = json_dict.get('max_days')
 
+    # 1.1 判断是否都有值
     if not all(
             [title, price, address, area_id, room_count, acreage, unit, capacity, beds, deposit, min_days, max_days]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数有误")
+
     # 1.2 校验参数格式是否正确
     try:
-        price = int(float(price)*100)
-        deposit = int(float(deposit)*100)
+        price = int(float(price) * 100)
+        deposit = int(float(deposit) * 100)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数有误")
-
 
     house = House()
     house.user_id = user_id
@@ -178,7 +214,7 @@ def save_new_house():
     # 获取到当前房屋的设施列表数组
     facilities = json_dict.get("facility")
     if facilities:
-        house.facilities=Facility.query.filter(Facility.id.in_(facilities)).all()
+        house.facilities = Facility.query.filter(Facility.id.in_(facilities)).all()
 
     # 3.保存house模型到数据库
     try:

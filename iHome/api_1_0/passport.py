@@ -38,6 +38,7 @@ def login():
     :return:
     """
     data_dict = request.json
+    print data_dict
     mobile = data_dict.get("mobile")
     password = data_dict.get("password")
 

@@ -34,7 +34,7 @@ $(document).ready(function() {
         }
         $.ajax({
             url:"/api/v1.0/session",
-            method : "post",
+            type : "post",
             headers:{
                 "X-CSRFToken":getCookie("csrf_token")
             },

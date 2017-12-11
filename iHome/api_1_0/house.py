@@ -12,7 +12,7 @@ from . import api
 from iHome.models import Area, House, HouseImage,Facility
 
 
-@api.route("/houses/<int:house_id>/images")
+@api.route("/houses/<int:house_id>/images",methods=["POST"])
 @login_required
 def upload_house_image(house_id):
     """
@@ -30,16 +30,17 @@ def upload_house_image(house_id):
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
 
+
     # 2. 查询房屋是否存在
     try:
-        house = House.query.get("house_id")
+        house = House.query.get(house_id)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="查询房屋失败")
 
     if not house:
         return jsonify(errno=RET.NODATA, errmsg="房屋不存在")
-
+    # 3. 上传到七牛云
     try:
         url = storage_image(house_image_file)
     except Exception as e:
@@ -49,6 +50,7 @@ def upload_house_image(house_id):
         # 4. 初始化房屋的图片模型
     house_image = HouseImage()
     house_image.house_id = house.id
+    house_image.url = url
 
     # 判断是否有首页图片
     if not house.index_image_url:
@@ -56,14 +58,16 @@ def upload_house_image(house_id):
 
     # 更新到数据库
     try:
+        db.session.add(house_image)
         db.session.commit()
     except Exception as e:
-        current_app.logger.error(e)
         db.session.rollback()
+        current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
     return jsonify(errno=RET.OK,errmsg="OK",data={"url":QINIU_DOMIN_PREFIX +url})
 
-@api.route("/house",methods=["POST"])
+
+@api.route("/houses",methods=["POST"])
 @login_required
 def save_new_house():
     """
@@ -117,6 +121,7 @@ def save_new_house():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数有误")
 
+
     house = House()
     house.user_id = user_id
     house.area_id = area_id
@@ -132,7 +137,14 @@ def save_new_house():
     house.min_days = min_days
     house.max_days = max_days
 
+    # 获取到当前房屋的设施列表数组
+    facilities = json_dict.get("facility")
+    if facilities:
+        house.facilities=Facility.query.filter(Facility.id.in_(facilities)).all()
+
+    # 3.保存house模型到数据库
     try:
+        db.session.add(house)
         db.session.commit()
     except Exception as e:
         db.session.rollback()

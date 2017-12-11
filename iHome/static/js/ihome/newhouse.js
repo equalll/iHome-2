@@ -10,15 +10,15 @@ $(document).ready(function(){
     // 在页面加载完毕之后获取区域信息
     $.get('/api/v1.0/areas',function (resp) {
         if(resp.errno=="0"){
+            // 将数据添加到select的标签中
             // $("#areas-tmpl").
-            for(var i=0; i<resp.data.length;i++){
+            // for(var i=0; i<resp.data.length;i++){
                 //<option value="{{area.aid}}">{{area.aname}}</option>
                 // var areaId = resp.data[i].aid
                 // var areaName = resp.data[i].aname
                 // $("#area-id").append('<option value= " '+areaId+' ">'+areaName+'</option>')
                 var html = template("areas-tmpl",{"areas":resp.data})
                 $("#area-id").html(html)
-            }
         }else{
             alert(resp.errmsg)
         }
@@ -31,7 +31,7 @@ $(document).ready(function(){
     $("#form-house-info").submit(function (e) {
         e.preventDefault()
                 // 获取所有需要提交的字段
-        var params={}
+        var params = {}
         //序列 hua
         $(this).serializeArray().map(function (x) {
             params[x.name]=x.value
@@ -62,12 +62,38 @@ $(document).ready(function(){
                 }else{
                     alert(resp.errmsg)
                 }
+            }
+        })
+    })
+
+    // : 处理图片表单的数据
+        // $("#form-house-info").hide()
+    // $("#form-house-image").show()
+    // // 在上传房屋基本信息成功之后，去设置房屋的id，以便在上传房屋图片的时候使用
+    // var house_id = $("#house-id").val()
+    // $("#house-id").val(1)
+
+    // 处理图片表单的数据
+    $("#form-house-image").submit(function (e) {
+        e.preventDefault()
+        var house_id =$("#house-id").val()
+        // alert(house_id)
+
+        $(this).ajaxSubmit({
+            url:"/api/v1.0/houses/" + house_id + "/images",
+            type:"post",
+            headers:{
+                "X-CSRFToken":getCookie("csrf_token")
+            },
+            success:function (resp) {
+                if (resp.errno == "0"){
+                    // $(".house-image-cons").append('<img src="' + resp.data.url + '">')
+                    $(".house-image-cons").append('<img src="' + resp.data.url + '">')
+                }
 
             }
         })
     })
 
-    // TODO: 处理图片表单的数据
-    var house_id =$("#house-id").val()
 
 })

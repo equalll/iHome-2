@@ -25,6 +25,17 @@ def logout():
     return jsonify(errno=RET.OK, errmsg="OK")
 
 @api.route("/session")
+def check_login():
+    """
+    检测用户是否登录，如果登录，则返回用户的名和用户id
+    :return:
+    """
+    # 从 session 中取出用户的信息
+    user_id = session.get("user_id")
+    name=session.get("name")
+    # 查询不到为NOne
+    # 直接返回
+    return jsonify(errno=RET.OK,errmsg="OK",data={"user_id": user_id,"name": name})
 
 
 @api.route("/session",methods=["POST"])

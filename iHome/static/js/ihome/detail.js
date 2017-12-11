@@ -21,7 +21,7 @@ $(document).ready(function(){
     $.get('/api/v1.0/houses/' + houseId,function (resp) {
         if(resp.errno=="0"){
             // 1. 显示房屋顶部图片
-            alert(houseId)
+            // alert(houseId)
             // $(".swiper-container").html(template("house_image_tmpl",{"img_urls":resp.data.house.img_urls,"price":resp.data.house.price}))
             $(".swiper-container").html(template("house-image-tmpl", {"img_urls": resp.data.house.img_urls, "price": resp.data.house.price}))
             // 数据加载完毕后,需要设置幻灯片对象，开启幻灯片滚动

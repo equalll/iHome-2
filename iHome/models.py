@@ -31,7 +31,7 @@ class User(BaseModel, db.Model):
 
     @property
     def password(self):
-        return "xixi"
+        return AttributeError("当前属性不可读")
 
     @password.setter
     def password(self,value):
@@ -42,11 +42,19 @@ class User(BaseModel, db.Model):
 
     def to_dict(self):
         """将对象转换为字典数据"""
-        user_dict = {
-            "real_name": self.real_name,
-            "id_card": self.id_card
+        ###原来写的代码，若是报错,,,
+        # user_dict = {
+        #     "real_name": self.real_name,
+        #     "id_card": self.id_card
+        # }
+        # return user_dict
+
+        resp_dict = {
+            "name": self.name,
+            "avatar_url": constants.QINIU_DOMIN_PREFIX + self.avatar_url if self.avatar_url else "",
+            "mobile": self.mobile
         }
-        return user_dict
+        return resp_dict
 
 class Area(BaseModel, db.Model):
     """城区"""

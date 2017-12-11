@@ -61,10 +61,14 @@ $(document).ready(function(){
     // 检查用户的登录状态
     $.get("/api/v1.0/session", function (resp) {
         if (resp.errno == "0") {
-            $(".top-bar>.user-info").show();
-            $(".top-bar>.user-info>.user-name").html(resp.data.name)
-        }else {
-            $(".top-bar>.register-login").show();
+            if (resp.data.user_id && resp.data.name){
+                $(".user-name").html(resp.data.name)
+                $(".user-info").show()
+            }
+            // $(".top-bar>.user-info").show();
+            // $(".top-bar>.user-info>.user-name").html(resp.data.name)
+        } else {
+            $(".register-login").show();
         }
     })
     // TODO: 获取幻灯片要展示的房屋基本信息

@@ -4,7 +4,7 @@ from flask import g
 from flask import request
 
 from iHome import redis_store, db
-from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX
+from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND
 from iHome.utils.common import login_required
 from iHome.utils.image_storage import storage_image
 from iHome.utils.response_code import RET
@@ -12,6 +12,42 @@ from . import api
 from iHome.models import Area, House, HouseImage,Facility
 
 
+@api.route("/houses/<int:house_id>")
+def get_house_detail(house_id):
+    """
+    1. 通过房屋的id查询出指定的房屋
+    2. 将房屋的相关数据进行返回(房屋信息，当前登录用户的id)
+    3. 考虑是否缓存的问题
+    :param house_id:
+    :return:
+    """
+    # 先尝试从redis中去取
+    # 获取到当前登录用户的id，如果没有登录，那么就返回-1
+    user_id =g.user_id
+    try:
+        house_dict = redis_store.get(("house_detail_%d" %house_id))
+        if house_dict:
+            # 如果取到有数据，那么直接返回
+            return jsonify(errno=RET.OK, errmsg="OK", data={"user_id": user_id, "house": eval(house_dict)})
+    except Exception as e:
+        current_app.logger.error(e)
+
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+
+    if not house:
+        return  jsonify(errno=RET.NODATA, errmsg="房屋不存在")
+
+    house_dict=house.to_full_dict()
+    # 缓存当前房屋数据
+    try:
+        redis_store.set(("house_detail_%d"%house_id),house_dict,HOUSE_DETAIL_REDIS_EXPIRE_SECOND )
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.OK, errmsg="OK", data={"user_id": user_id, "house": house_dict})
 @api.route("/houses/<int:house_id>/images",methods=["POST"])
 @login_required
 def upload_house_image(house_id):

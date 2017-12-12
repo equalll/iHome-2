@@ -1,9 +1,11 @@
 # -*- coding:utf8 -*-
+import datetime
 from flask import current_app, jsonify
 from flask import g
 from flask import request
 from flask import session
 
+from iHome import constants
 from iHome import redis_store, db
 from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND, \
     HOME_PAGE_MAX_HOUSES, HOME_PAGE_DATA_REDIS_EXPIRES, HOUSE_LIST_PAGE_CAPACITY
@@ -11,7 +13,8 @@ from iHome.utils.common import login_required
 from iHome.utils.image_storage import storage_image
 from iHome.utils.response_code import RET
 from . import api
-from iHome.models import Area, House, HouseImage,Facility
+from iHome.models import Area, House, HouseImage,Facility, Order
+
 
 @api.route("/houses")
 def get_house_list():
@@ -25,32 +28,72 @@ def get_house_list():
     p = args.get("p","1")
     sk = args.get("sk","new")
     aid = args.get("aid","")
+    start_date_str = args.get("start-date")   #"2017-12-12"
+    end_date_str = args.get("end_date")
+    # 2. 判断参数
+    start_date=None
+    end_date=None
+    try:
+        if start_date_str:
+            start_date = datetime.datetime.strptime(start_date_str,"%Y-%m-%d")
+        if end_date_str:
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d")
+        if start_date_str and end_date_str:
+            assert start_date < end_date, Exception("end_date_str>start_date_str")
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
     try:
         p=int(p)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
+    # 先从缓存中去取数据
+    try:
+        redis_key = "house_list_%s_%s_%s_%s"%(start_date_str,end_date_str,aid,sk)
+        response_dict = redis_store.hget(redis_key,p)
+        if response_dict:
+            return jsonify(errno=RET.OK, errmsg="OK", data=eval(response_dict))
+    except Exception as e:
+        current_app.logger.error(e)
+
     try:
         # houses = House.query.all()
-        house_query=House.query
+        houses_query=House.query
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg="查询数据失败")
     filters=[]
     if aid:
         filters.append(House.area_id == aid)
+
+    # 添加日期过滤的条件：
+    confilect_orders=None
+    if start_date and end_date:
+        confilect_orders = Order.query.filter(Order.begin_date < end_date,Order.end_date>start_date).all()
+    elif start_date:
+        confilect_orders = Order.query.filter(Order.end_date > start_date).all()
+    elif end_date:
+        confilect_orders = Order.query.filter(Order.begin_date < end_date).all()
+
+    if confilect_orders:
+        # 如果冲突的订单里面有值, 取到所有冲突订单的房屋id
+        confilect_house_ids = [order.house_id for order in confilect_orders]
+    # 给房屋的过滤列表添加条件：不包含冲突的房屋id的房屋
+        filters.append(House.id.notin_(confilect_house_ids))
+
     # 添加排序逻辑
     if sk == "booking":
-        house_query = house_query.filter(*filters).order_by(House.order_count.desc())
+        houses_query = houses_query.filter(*filters).order_by(House.order_count.desc())
     elif sk == "price-inc":
-        house_query = house_query.filter(*filters).order_by(House.price)
+        houses_query = houses_query.filter(*filters).order_by(House.price)
     elif sk == "price-des":
-        house_query = house_query.filter(*filters).order_by(House.price.desc())
+        houses_query = houses_query.filter(*filters).order_by(House.price.desc())
     else:
-        house_query = house_query.filter(*filters).order_by(House.create_time.desc())
+        houses_query = houses_query.filter(*filters).order_by(House.create_time.desc())
     # 进行分页 > 参1：查询第几页，参数2：每一页多少条，参数3：是否抛出错误
-    paginate = house_query.paginate(p,HOUSE_LIST_PAGE_CAPACITY,False)
+    paginate = houses_query.paginate(p,HOUSE_LIST_PAGE_CAPACITY,False)
     # 取到总页数
     total_page = paginate.pages
     # 取到当前页的数据
@@ -58,7 +101,25 @@ def get_house_list():
     house_dict = []
     for house in houses:
         house_dict.append(house.to_basic_dict())
-    return jsonify(errno=RET.OK,errmsg="OK",data={"houses":house_dict,"total_page":total_page})
+    #缓存数据
+    response_dict = {"houses":house_dict,"total_page":total_page}
+
+    # 缓存数据
+    try:
+        redis_key =  "house_list_%s_%s_%s_%s" % (start_date_str, end_date_str, aid, sk)
+    # 生成redis中的管道对象
+        pipeline = redis_store.pipeline()
+        # start     shiwu         # 开启事务
+        pipeline.multi()
+    # 保存数据 hash
+        pipeline.hset(redis_key,p,response_dict)
+    # 设置生命周期
+        pipeline.expire(redis_key,constants.HOUSE_LIST_REDIS_EXPIRES)
+    # 提交事务
+        pipeline.execute()
+    except Exception as e:
+        current_app.logger.error(e)
+    return jsonify(errno=RET.OK,errmsg="OK",data=response_dict)
 
 @api.route("/houses/index")
 def get_house_index():

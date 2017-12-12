@@ -25,7 +25,16 @@ function showErrorMsg() {
 }
 
 $(document).ready(function(){
-    // TODO: 判断用户是否登录
+    //  判断用户是否登录
+    $.get('/api/v1.0/session',function (resp) {
+        if(resp.errno=="0"){
+              // 取数据进行判断是否有值
+            if (!(resp.data.user_id && resp.data.name)){
+                location.href="/login.html"
+            }
+        }
+
+    })
 
     $(".input-daterange").datepicker({
         format: "yyyy-mm-dd",
@@ -42,7 +51,7 @@ $(document).ready(function(){
         } else {
             var sd = new Date(startDate);
             var ed = new Date(endDate);
-            days = (ed - sd)/(1000*3600*24) + 1;
+            days = (ed - sd)/(1000*3600*24);
             var price = $(".house-text>p>span").html();
             var amount = days * parseFloat(price);
             $(".order-amount>span").html(amount.toFixed(2) + "(共"+ days +"晚)");
@@ -51,7 +60,15 @@ $(document).ready(function(){
     var queryData = decodeQuery();
     var houseId = queryData["hid"];
 
-    // TODO: 获取房屋的基本信息
+    // : 获取房屋的基本信息
+    $.get("/api/v1.0/houses/"+houseId,function (resp) {
+        if (resp.errno == "0"){
+             $(".house-info>img").attr("src", resp.data.house.img_urls[0])
+             $(".house-text>h3").html(resp.data.house.title)
+             $(".house-text>p>span").html((resp.data.house.price / 100).toFixed(0))
+        }
+
+    })
 
     // TODO: 订单提交
 })

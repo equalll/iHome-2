@@ -63,6 +63,7 @@ function updateHouseData(action) {
                 }else{
                     $(".house-list").append(template("house-list-tmpl", {"houses": resp.data.houses}))
                 }
+                // 从/houses获取数据，渲染search.html页面
 
             }
         }
@@ -73,8 +74,8 @@ $(document).ready(function(){
     var queryData = decodeQuery();
     var startDate = queryData["sd"];
     var endDate = queryData["ed"];
-    $("#start-date").val(startDate); 
-    $("#end-date").val(endDate); 
+    $("#start-date").val(startDate);
+    $("#end-date").val(endDate);
     updateFilterDateDisplay();
     var areaName = queryData["aname"];
     if (!areaName) areaName = "位置区域";

@@ -33,7 +33,7 @@ def check_login():
     # 从 session 中取出用户的信息
     user_id = session.get("user_id")
     name=session.get("name")
-    # 查询不到为NOne
+    #
     # 直接返回
     return jsonify(errno=RET.OK,errmsg="OK",data={"user_id": user_id,"name": name})
 

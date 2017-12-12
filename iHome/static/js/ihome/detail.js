@@ -34,7 +34,7 @@ $(document).ready(function(){
                 paginationType: 'fraction'
             });
             // 2. 显示房屋详情内容
-            $(".detail-con").html(template("house-detail-tmpl"),{"house":resp.data.house})
+            $(".detail-con").html(template("house-detail-tmpl",{"house":resp.data.house}))
              // 3. 处理底部的预订按钮，如果当前用户不是房东的话，就显示预订按钮
             if (resp.data.user_id != resp.data.house.user_id){
                 $(".book-house").show()

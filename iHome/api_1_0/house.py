@@ -24,26 +24,35 @@ def get_house_list():
     # 获取到前端需要查询的页数
     p = args.get("p","1")
     sk = args.get("sk","new")
+    aid = args.get("aid","")
+    try:
+        p=int(p)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
     try:
         # houses = House.query.all()
         house_query=House.query
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg="查询数据失败")
+    filters=[]
+    if aid:
+        filters.append(House.area_id == aid)
     # 添加排序逻辑
     if sk == "booking":
-        house_query = house_query.order_by(House.order_count.desc())
+        house_query = house_query.filter(*filters).order_by(House.order_count.desc())
     elif sk == "price-inc":
-        house_query = house_query.order_by(House.price)
+        house_query = house_query.filter(*filters).order_by(House.price)
     elif sk == "price-des":
-        house_query = house_query.order_by(House.price.desc())
+        house_query = house_query.filter(*filters).order_by(House.price.desc())
     else:
-        house_query = house_query.order_by(House.create_time.desc())
+        house_query = house_query.filter(*filters).order_by(House.create_time.desc())
     # 进行分页 > 参1：查询第几页，参数2：每一页多少条，参数3：是否抛出错误
-    paginate = house_query.paginate(int(p),HOUSE_LIST_PAGE_CAPACITY,False)
+    paginate = house_query.paginate(p,HOUSE_LIST_PAGE_CAPACITY,False)
     # 取到总页数
     total_page = paginate.pages
-
     # 取到当前页的数据
     houses = paginate.items
     house_dict = []

@@ -13,6 +13,24 @@ from iHome.utils.response_code import RET
 from . import api
 from iHome.models import Area, House, HouseImage,Facility
 
+@api.route("/houses")
+def get_house_list():
+    """
+    1. 先加载所有的房屋信息
+    :return:
+    """
+    # 去查询所有数据
+    try:
+        houses = House.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="查询数据失败")
+
+    house_dict = []
+    for house in houses:
+        house_dict.append(house.to_basic_dict())
+    return jsonify(errno=RET.OK,errmsg="OK",data={"houses":house_dict,"total_page":1})
+
 @api.route("/houses/index")
 def get_house_index():
     """
@@ -35,7 +53,7 @@ def get_house_index():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="查询数据失败")
 
-        # 将对象列表转成字典列表
+    # 将对象列表转成字典列表
     houses_dict = []
     for house in houses:
         houses_dict.append(house.to_basic_dict())

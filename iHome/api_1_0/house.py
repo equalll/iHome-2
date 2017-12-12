@@ -6,7 +6,7 @@ from flask import session
 
 from iHome import redis_store, db
 from iHome.constants import AREA_INFO_REDIS_EXPIRES, QINIU_DOMIN_PREFIX,HOUSE_DETAIL_REDIS_EXPIRE_SECOND, \
-    HOME_PAGE_MAX_HOUSES, HOME_PAGE_DATA_REDIS_EXPIRES
+    HOME_PAGE_MAX_HOUSES, HOME_PAGE_DATA_REDIS_EXPIRES, HOUSE_LIST_PAGE_CAPACITY
 from iHome.utils.common import login_required
 from iHome.utils.image_storage import storage_image
 from iHome.utils.response_code import RET
@@ -20,16 +20,36 @@ def get_house_list():
     :return:
     """
     # 去查询所有数据
+    args = request.args
+    # 获取到前端需要查询的页数
+    p = args.get("p","1")
+    sk = args.get("sk","new")
     try:
-        houses = House.query.all()
+        # houses = House.query.all()
+        house_query=House.query
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR,errmsg="查询数据失败")
+    # 添加排序逻辑
+    if sk == "booking":
+        house_query = house_query.order_by(House.order_count.desc())
+    elif sk == "price-inc":
+        house_query = house_query.order_by(House.price)
+    elif sk == "price-des":
+        house_query = house_query.order_by(House.price.desc())
+    else:
+        house_query = house_query.order_by(House.create_time.desc())
+    # 进行分页 > 参1：查询第几页，参数2：每一页多少条，参数3：是否抛出错误
+    paginate = house_query.paginate(int(p),HOUSE_LIST_PAGE_CAPACITY,False)
+    # 取到总页数
+    total_page = paginate.pages
 
+    # 取到当前页的数据
+    houses = paginate.items
     house_dict = []
     for house in houses:
         house_dict.append(house.to_basic_dict())
-    return jsonify(errno=RET.OK,errmsg="OK",data={"houses":house_dict,"total_page":1})
+    return jsonify(errno=RET.OK,errmsg="OK",data={"houses":house_dict,"total_page":total_page})
 
 @api.route("/houses/index")
 def get_house_index():

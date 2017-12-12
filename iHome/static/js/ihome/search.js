@@ -55,7 +55,15 @@ function updateHouseData(action) {
             if (total_page == 0) {
                 $(".house-list").html("未查询到数据")
             }else {
-                $(".house-list").html(template("house-list-tmpl", {"houses": resp.data.houses}))
+                // $(".house-list").html(template("house-list-tmpl", {"houses": resp.data.houses}))
+                cur_page = next_page
+                if (action =="renew"){
+                     // 代表是重新加载数据，直接设置html
+                    $(".house-list").html(template("house-list-tmpl", {"houses": resp.data.houses}))
+                }else{
+                    $(".house-list").append(template("house-list-tmpl", {"houses": resp.data.houses}))
+                }
+
             }
         }
     })

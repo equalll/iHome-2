@@ -11,6 +11,26 @@ from iHome.utils.response_code import RET
 from . import api
 from iHome.utils.common import login_required
 
+@api.route("/orders")
+@login_required
+def get_orders():
+    """
+    1. 去订单的表中查询当前登录用户下的订单
+    2. 返回数据
+    :return:
+    """
+    user_id = g.user_id
+    try:
+        orders = Order.query.filter(Order.user_id==user_id).order_by(Order.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+
+    orders_dict_li =[]
+    for order in orders:
+        orders_dict_li.append(order.to_dict())
+    return jsonify(errno=RET.OK, errmsg="OK", data={"orders": orders_dict_li})
+
 @api.route("/orders",methods=["POST"])
 @login_required
 def add_order():

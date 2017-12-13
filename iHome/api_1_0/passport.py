@@ -37,7 +37,6 @@ def check_login():
     # 直接返回
     return jsonify(errno=RET.OK,errmsg="OK",data={"user_id": user_id,"name": name})
 
-
 @api.route("/session",methods=["POST"])
 def login():
     """
@@ -81,7 +80,6 @@ def login():
     return jsonify(errno=RET.OK,errmsg="登录成功")
 
 @api.route("/user", methods=["POST"])
-@login_required
 def register():
     """
     1. 获取参数和判断是否有值
@@ -111,8 +109,8 @@ def register():
         return jsonify(errno=RET.NODATA, errmsg="短信验证码过期")
 
     # 3. 校验验证码
-    if phonecode != sms_code:
-        return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
+    # if phonecode != sms_code:
+    #     return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
 
         # 4. 初始化 user 模型，并设置数据并添加到数据库
     user =User()

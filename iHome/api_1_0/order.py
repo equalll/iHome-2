@@ -20,8 +20,25 @@ def get_orders():
     :return:
     """
     user_id = g.user_id
+    # 取当前角色的标识：房客：custom,房东：landlord
+    role = request.args.get("role")
+
+    if not role:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    if role not in("custom","landlord"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
     try:
-        orders = Order.query.filter(Order.user_id==user_id).order_by(Order.create_time.desc()).all()
+        if role=="custom":# 房客订单查询
+            orders = Order.query.filter(Order.user_id==user_id).order_by(Order.create_time.desc()).all()
+        elif role=="landlord": # 房东订单查询
+            # 1. 先查出当前登录用户的所有的房屋, House
+            houses = House.query.filter(House.user_id==user_id).all()
+            house_ids=[house.id for house in houses]
+            # 2. 取到所有的房屋id
+            # 3. 从订单表中查询出房屋id在第2步取出来的列表中的房屋
+            orders = Order.query.filter(Order.house_id.in_(house_ids)).order_by(Order.create_time.desc()).all()
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="数据查询错误")

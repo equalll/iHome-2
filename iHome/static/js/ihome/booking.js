@@ -70,5 +70,35 @@ $(document).ready(function(){
 
     })
 
-    // TODO: 订单提交
+    // 订单提交
+    $(".submit-btn").on("click",function () {
+        var startDate = $("#start-date").val()
+        var endDate = $("#end-date").val()
+        if (!(startDate && endDate)){
+            return
+        }
+        var params ={
+            "start_date":startDate,
+            "end_date":endDate,
+            "house_id":houseId
+        }
+        $.ajax({
+            url:"/api/v1.0/orders",
+            type:"post",
+            headers:{
+                "X-CSRFToken":getCookie("csrf_token")
+            },
+            data:JSON.stringify(params),
+            contentType:"application/json",
+            success:function (resp) {
+                if(resp.errno=="0"){
+                    location.href = "/orders.html"
+                }else if (resp.errno=="4101"){
+                    location.href="/login.html"
+                }else{
+                    alert(resp.errmsg)
+                }
+            }
+        })
+    })
 })

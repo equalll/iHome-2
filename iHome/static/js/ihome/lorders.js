@@ -53,10 +53,34 @@ $(document).ready(function(){
 
             })
             $(".order-reject").on("click", function(){
-            var orderId = $(this).parents("li").attr("order-id");
-            $(".modal-reject").attr("order-id", orderId);
-        });
+                var orderId = $(this).parents("li").attr("order-id");
+                $(".modal-reject").attr("order-id", orderId);
+            });
+            $(".modal-reject").on("click", function () {
+                var orderId = $(".modal-reject").attr("order-id")
+                var reason = $("#reject-reason").val()
+                $.ajax({
+                    url: "/api/v1.0/orders",
+                    type: "put",
+                    contentType: "application/json",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrf_token")
+                    },
+                    data: JSON.stringify({"order_id": orderId, "action": "reject", "reason": reason}),
+                    success: function (resp) {
+                        if (resp.errno == "0") {
+                            // 1. 设置订单状态的html
+                            $(".orders-list>li[order-id="+ orderId +"]>div.order-content>div.order-text>ul li:eq(4)>span").html("已拒单");
+                            // 2. 隐藏接单和拒单操作
+                            $("ul.orders-list>li[order-id="+ orderId +"]>div.order-title>div.order-operate").hide();
+                            // 3. 隐藏弹出的框
+                            $("#reject-modal").modal("hide");
+                        }else{
+                            alert(resp.errmsg)
+                        }
+                    }
+                })
+            })
         }
     })
-
 });

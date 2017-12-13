@@ -27,8 +27,12 @@ def change_order_status():
     data_json = request.json
     # 取到订单号
     order_id = data_json.get("order_id")
+    action = data_json.get("action")
 
     if not order_id:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    if action not in ("accept","reject"):
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
     # 2. 查询订单
@@ -46,7 +50,16 @@ def change_order_status():
         return jsonify(errno=RET.ROLEERR, errmsg="不允许操作")
 
         # 3 更改订单的状态
-    order.status = "WAIT_COMMENT"
+    if action == "accept":
+        order.status = "WAIT_COMMENT"
+    elif action == "reject":
+        order.status = "REJECTED"
+        reason = data_json.get("reason")
+        # 取出原因
+        if not reason:
+            return jsonify(errno=RET.PARAMERR,errmsg="请填写拒单原因")
+        # 保存拒单原因
+        order.comment = reason
 
     try:
         db.session.commit()

@@ -11,6 +11,51 @@ from iHome.utils.response_code import RET
 from . import api
 from iHome.utils.common import login_required
 
+
+@api.route('/orders',methods=["PUT"])
+@login_required
+def change_order_status():
+    """
+    1. 接受参数：order_id
+    2. 通过order_id找到指定的订单，(条件：status="待接单")
+    3. 修改订单状态
+    4. 保存到数据库
+    5. 返回
+    :return:
+    """
+    user_id = g.user_id
+    data_json = request.json
+    # 取到订单号
+    order_id = data_json.get("order_id")
+
+    if not order_id:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    # 2. 查询订单
+    try:
+        order = Order.query.filter(Order.id == order_id,Order.status=="WAIT_ACCEPT").first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+
+    if not order:
+        return jsonify(errno=RET.NODATA, errmsg="未查询到订单")
+
+        # 查询当前订单的房东是否是当前登录用户，如果不是，不允许操作
+    if user_id != order.house.user_id:
+        return jsonify(errno=RET.ROLEERR, errmsg="不允许操作")
+
+        # 3 更改订单的状态
+    order.status = "WAIT_COMMENT"
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
+
+    return jsonify(errno=RET.OK,errmsg="OK")
 @api.route("/orders")
 @login_required
 def get_orders():

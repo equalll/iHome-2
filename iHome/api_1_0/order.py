@@ -4,7 +4,7 @@ import datetime
 from flask import current_app
 from flask import g, jsonify
 from flask import request
-from iHome import db
+from iHome import db, redis_store
 from iHome.models import House, Order
 from iHome.utils.response_code import RET
 from . import api
@@ -39,11 +39,20 @@ def order_comment():
     if not order:
         return jsonify(errno=RET.NODATA, errmsg="该订单不存在")
         # 3. 修改模型并且保存到数据库
+    # 3. 修改模型并且保存到数据库
+    order.comment = comment
+    order.status = "COMPLETE"
+
     try:
         db.session.commit()
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
+    # 删除房屋详情信息缓存
+    try:
+        redis_store.delete("house_detail_%d"%order.house_id)
+    except Exception as e:
+        current_app.logger.error(e)
     # 4 返回结果
     return jsonify(errno=RET.OK, errmsg="ok")
 

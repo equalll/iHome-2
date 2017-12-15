@@ -28,8 +28,8 @@ def get_house_list():
     p = args.get("p","1")
     sk = args.get("sk","new")
     aid = args.get("aid","")
-    start_date_str = args.get("start-date")   #"2017-12-12"
-    end_date_str = args.get("end_date")
+    start_date_str = args.get("sd","")   #"2017-12-12"
+    end_date_str = args.get("ed","")
     # 2. 判断参数
     start_date=None
     end_date=None

@@ -46,7 +46,7 @@ function updateHouseData(action) {
         p:next_page
     };
     // 获取房屋列表信息
-        $.get("/api/v1.0/houses", params, function (resp) {
+        $.get("/api/v1.0/houses", params, function (resp) {     // ajax请求
         // 将正在加载数据的标志设置为false
         house_data_querying = false;
         if (resp.errno == "0") {
